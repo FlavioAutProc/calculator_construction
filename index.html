@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <meta name="theme-color" content="#0d9488" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <title>Calcular Construção</title>
+    <link rel="manifest" href="data:application/json,{}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        /* ===== Reset e base ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0d9488;
+            --primary-dark: #0f766e;
+            --primary-light: #ccfbf1;
+            --bg: #f0f4f8;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --tab-height: 64px;
+            --header-height: 60px;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        html {
+            font-family: var(--font);
+            font-size: 16px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ===== App Container ===== */
+        #app {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            min-height: 100dvh;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            margin: 0 auto;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.04);
+        }
+
+        /* ===== Header ===== */
+        .app-header {
+            background: var(--surface);
+            padding: 12px 20px;
+            padding-top: max(12px, env(safe-area-inset-top));
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            min-height: var(--header-height);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.92);
+        }
+
+        .app-header .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.2rem;
+        }
+
+        .app-header .brand-text {
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: var(--text);
+            letter-spacing: -0.3px;
+        }
+
+        .app-header .brand-text span {
+            color: var(--primary);
+        }
+
+        .app-header .spacer {
+            flex: 1;
+        }
+
+        .app-header .header-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .app-header .header-btn:active {
+            transform: scale(0.92);
+        }
+
+        .app-header .header-btn .badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: var(--primary);
+            color: #fff;
+            font-size: 0.55rem;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 10px;
+            min-width: 16px;
+            text-align: center;
+        }
+
+        /* ===== Main Content ===== */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 16px 16px calc(var(--tab-height) + 16px + var(--safe-bottom));
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .main-content::-webkit-scrollbar {
+            width: 3px;
+        }
+        .main-content::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        /* ===== Tab Panels ===== */
+        .tab-panel {
+            display: none;
+            animation: fadeUp 0.25s ease;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== Cards ===== */
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 20px 18px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .form-group .label-hint {
+            font-weight: 400;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper input,
+        .input-wrapper select {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 1rem;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--surface);
+            color: var(--text);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-family: var(--font);
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .input-wrapper input:focus,
+        .input-wrapper select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.08);
+        }
+
+        .input-wrapper input::placeholder {
+            color: var(--text-muted);
+            font-weight: 300;
+            font-size: 0.9rem;
+        }
+
+        .input-wrapper select {
+            padding-right: 40px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            cursor: pointer;
+        }
+
+        /* ===== Botões ===== */
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font);
+            min-height: 52px;
+            flex: 1;
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+        }
+
+        .btn-primary:active {
+            box-shadow: 0 2px 6px rgba(13, 148, 136, 0.20);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 2px solid var(--border);
+        }
+
+        .btn-outline:active {
+            background: var(--bg);
+        }
+
+        /* ===== Resultado no estilo do modelo ===== */
+        .result-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 20px 18px;
+            margin-top: 16px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            display: none;
+            /* será mostrado via JS */;
+        }
+
+        .result-card.visible {
+            display: block;
+            animation: fadeUp 0.3s ease;
+        }
+
+        .result-main {
+            text-align: center;
+            padding: 8px 0 12px;
+        }
+
+        .result-main .big-number {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+        }
+
+        .result-main .big-number .unit {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-left: 4px;
+        }
+
+        .result-main .sub-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .result-detail {
+            display: flex;
+            justify-content: center;
+            padding: 12px 0 4px;
+            border-top: 1px solid var(--border);
+            margin-top: 12px;
+        }
+
+        .result-detail .detail-item {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .result-detail .detail-item strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 14px;
+        }
+
+        .result-actions .btn-sm {
+            flex: 0 1 auto;
+            padding: 10px 20px;
+            font-size: 0.8rem;
+            min-height: 40px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font);
+        }
+
+        .result-actions .btn-sm:active {
+            transform: scale(0.95);
+            background: var(--bg);
+        }
+
+        /* ===== Mode selector (aba 2) ===== */
+        .mode-selector {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+            background: var(--bg);
+            padding: 4px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        .mode-selector .mode-btn {
+            flex: 1;
+            padding: 10px 6px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font);
+            text-align: center;
+            min-height: 40px;
+        }
+
+        .mode-selector .mode-btn.active {
+            background: var(--surface);
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border);
+        }
+
+        .mode-selector .mode-btn:active {
+            transform: scale(0.96);
+        }
+
+        .mode-content {
+            display: none;
+        }
+
+        .mode-content.active {
+            display: block;
+        }
+
+        /* ===== Inline select (tipo argamassa) ===== */
+        .inline-select {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .inline-select .option {
+            flex: 1;
+            min-width: 70px;
+            padding: 10px 8px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--surface);
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font);
+        }
+
+        .inline-select .option.active {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .inline-select .option .sub {
+            display: block;
+            font-size: 0.6rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* ===== Tab Bar (inferior) ===== */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            display: flex;
+            padding: 4px 0 calc(4px + var(--safe-bottom));
+            z-index: 40;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.94);
+            height: var(--tab-height);
+        }
+
+        .tab-bar .tab-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1px;
+            background: transparent;
+            border: none;
+            font-size: 0.55rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font);
+            padding: 4px 0;
+            min-height: 52px;
+            touch-action: manipulation;
+            position: relative;
+        }
+
+        .tab-bar .tab-btn i {
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+        }
+
+        .tab-bar .tab-btn span {
+            letter-spacing: 0.02em;
+        }
+
+        .tab-bar .tab-btn.active {
+            color: var(--primary);
+        }
+
+        .tab-bar .tab-btn.active i {
+            transform: translateY(-2px);
+        }
+
+        .tab-bar .tab-btn:active {
+            transform: scale(0.92);
+        }
+
+        /* ===== History Overlay ===== */
+        .history-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 100;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .history-overlay.open {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .history-sheet {
+            background: var(--surface);
+            border-radius: var(--radius) var(--radius) 0 0;
+            width: 100%;
+            max-width: 480px;
+            max-height: 80vh;
+            padding: 20px 20px calc(20px + var(--safe-bottom));
+            overflow-y: auto;
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .history-sheet .sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .history-sheet .sheet-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .history-sheet .sheet-header .close-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: var(--radius-xs);
+        }
+
+        .history-item {
+            padding: 12px 4px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-item .h-left {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .history-item .h-tab {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .history-item .h-desc {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text);
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-item .h-result {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            white-space: nowrap;
+        }
+
+        .history-item .h-time {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .history-empty i {
+            font-size: 2.4rem;
+            margin-bottom: 12px;
+            display: block;
+            opacity: 0.4;
+        }
+
+        .history-clear {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: var(--radius-xs);
+            transition: background 0.2s;
+        }
+
+        .history-clear:hover {
+            background: var(--bg);
+            color: #ef4444;
+        }
+
+        /* ===== Toast ===== */
+        .toast {
+            position: fixed;
+            bottom: calc(var(--tab-height) + 20px + var(--safe-bottom));
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--text);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 500;
+            z-index: 200;
+            opacity: 0;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            max-width: 90%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            text-align: center;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ===== Responsive ===== */
+        @media (min-width: 640px) {
+            #app {
+                border-radius: 0;
+                min-height: 100vh;
+                min-height: 100dvh;
+                box-shadow: none;
+            }
+            .tab-bar {
+                border-radius: 0;
+            }
+            .main-content {
+                padding: 24px 24px calc(var(--tab-height) + 24px + var(--safe-bottom));
+            }
+            .card {
+                padding: 24px;
+            }
+            .result-card {
+                padding: 24px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            #app {
+                border-radius: 24px;
+                margin-top: 20px;
+                margin-bottom: 20px;
+                min-height: calc(100vh - 40px);
+                min-height: calc(100dvh - 40px);
+                max-height: calc(100vh - 40px);
+                max-height: calc(100dvh - 40px);
+                overflow: hidden;
+                box-shadow: 0 8px 40px rgba(0, 0, 0, 0.06);
+            }
+            .main-content {
+                max-height: calc(100vh - 40px - var(--header-height) - var(--tab-height));
+                max-height: calc(100dvh - 40px - var(--header-height) - var(--tab-height));
+                padding-bottom: calc(var(--tab-height) + 24px + var(--safe-bottom));
+            }
+            .tab-bar {
+                position: relative;
+                border-radius: 0 0 24px 24px;
+                transform: none;
+                left: auto;
+            }
+            .toast {
+                bottom: 40px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .result-main .big-number {
+                font-size: 2.2rem;
+            }
+            .btn {
+                font-size: 0.9rem;
+                padding: 12px 14px;
+                min-height: 46px;
+            }
+            .card {
+                padding: 16px 14px;
+            }
+            .input-wrapper input,
+            .input-wrapper select {
+                padding: 12px 14px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* ===== Utilitários ===== */
+        .mt-8 {
+            margin-top: 8px;
+        }
+        .mt-12 {
+            margin-top: 12px;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-muted {
+            color: var(--text-muted);
+        }
+        .text-sm {
+            font-size: 0.8rem;
+        }
+        .flex {
+            display: flex;
+        }
+        .gap-8 {
+            gap: 8px;
+        }
+        .items-center {
+            align-items: center;
+        }
+
+        /* Remove setas dos inputs number */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        /* Esconder resultados inicialmente */
+        .result-card {
+            display: none;
+        }
+        .result-card.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+
+        <!-- ===== HEADER ===== -->
+        <header class="app-header">
+            <div class="brand-icon">
+                <i class="fas fa-calculator"></i>
+            </div>
+            <div class="brand-text">
+                Calcular <span>Construção</span>
+            </div>
+            <div class="spacer"></div>
+            <button class="header-btn" id="historyToggle" aria-label="Histórico">
+                <i class="fas fa-clock-rotate-left"></i>
+                <span class="badge" id="historyBadge">0</span>
+            </button>
+        </header>
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <main class="main-content" id="mainContent">
+
+            <!-- ===== ABA 1 – PEÇAS E M² ===== -->
+            <section class="tab-panel active" id="tab1">
+                <div class="card">
+                    <div class="card-title">Dimensões da peça</div>
+                    <div class="form-group">
+                        <label>Largura da peça <span class="label-hint">(cm)</span></label>
+                        <div class="input-wrapper">
+                            <input type="number" id="p1Largura" placeholder="Ex: 30" step="0.1" min="0.1" inputmode="decimal" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Comprimento da peça <span class="label-hint">(cm)</span></label>
+                        <div class="input-wrapper">
+                            <input type="number" id="p1Comprimento" placeholder="Ex: 60" step="0.1" min="0.1" inputmode="decimal" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Área desejada <span class="label-hint">(m²)</span></label>
+                        <div class="input-wrapper">
+                            <input type="number" id="p1Area" placeholder="Ex: 3" step="0.01" min="0.01" inputmode="decimal" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" id="p1Calcular">
+                        <i class="fas fa-play"></i> Calcular
+                    </button>
+                    <button class="btn btn-outline" id="p1Limpar">
+                        <i class="fas fa-eraser"></i> Limpar
+                    </button>
+                </div>
+
+                <!-- Resultado no estilo do modelo -->
+                <div class="result-card" id="p1Resultado">
+                    <div class="result-main">
+                        <div class="big-number" id="p1Numero">— <span class="unit">PEÇAS</span></div>
+                        <div class="sub-text" id="p1Subtexto">Arredondado para cima</div>
+                    </div>
+                    <div class="result-detail">
+                        <span class="detail-item">Área da peça: <strong id="p1AreaPeca">—</strong></span>
+                    </div>
+                    <div class="result-actions">
+                        <button class="btn-sm" data-copy="p1"><i class="fas fa-copy"></i> Copiar</button>
+                        <button class="btn-sm" data-share="p1"><i class="fas fa-share-nodes"></i> Compartilhar</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== ABA 2 – CAIXAS E M² ===== -->
+            <section class="tab-panel" id="tab2">
+                <div class="mode-selector" id="tab2Modes">
+                    <button class="mode-btn active" data-mode="A">A – Caixas</button>
+                    <button class="mode-btn" data-mode="B">B – m²</button>
+                    <button class="mode-btn" data-mode="C">C – Peças/caixa</button>
+                </div>
+
+                <!-- Modo A -->
+                <div class="mode-content active" id="modeA">
+                    <div class="card">
+                        <div class="card-title">Descobrir caixas</div>
+                        <div class="form-group">
+                            <label>Área desejada <span class="label-hint">(m²)</span></label>
+                            <div class="input-wrapper">
+                                <input type="number" id="p2aArea" placeholder="Ex: 4" step="0.01" min="0.01" inputmode="decimal" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>m² por caixa</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="p2aM2PorCaixa" placeholder="Ex: 2,16" step="0.01" min="0.01" inputmode="decimal" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn btn-primary" id="p2aCalcular"><i class="fas fa-play"></i> Calcular</button>
+                        <button class="btn btn-outline" id="p2aLimpar"><i class="fas fa-eraser"></i> Limpar</button>
+                    </div>
+                    <div class="result-card" id="p2aResultado">
+                        <div class="result-main">
+                            <div class="big-number" id="p2aNumero">— <span class="unit">CAIXAS</span></div>
+                            <div class="sub-text">Arredondado para cima</div>
+                        </div>
+                        <div class="result-detail" style="border-top:none; margin-top:0;">
+                            <span class="detail-item">&nbsp;</span>
+                        </div>
+                        <div class="result-actions">
+                            <button class="btn-sm" data-copy="p2a"><i class="fas fa-copy"></i> Copiar</button>
+                            <button class="btn-sm" data-share="p2a"><i class="fas fa-share-nodes"></i> Compartilhar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modo B -->
+                <div class="mode-content" id="modeB">
+                    <div class="card">
+                        <div class="card-title">Descobrir m²</div>
+                        <div class="form-group">
+                            <label>Quantidade de caixas</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="p2bCaixas" placeholder="Ex: 40" step="1" min="1" inputmode="numeric" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>m² por caixa</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="p2bM2PorCaixa" placeholder="Ex: 2,16" step="0.01" min="0.01" inputmode="decimal" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn btn-primary" id="p2bCalcular"><i class="fas fa-play"></i> Calcular</button>
+                        <button class="btn btn-outline" id="p2bLimpar"><i class="fas fa-eraser"></i> Limpar</button>
+                    </div>
+                    <div class="result-card" id="p2bResultado">
+                        <div class="result-main">
+                            <div class="big-number" id="p2bNumero">— <span class="unit">m²</span></div>
+                            <div class="sub-text">Total calculado</div>
+                        </div>
+                        <div class="result-detail" style="border-top:none; margin-top:0;">
+                            <span class="detail-item">&nbsp;</span>
+                        </div>
+                        <div class="result-actions">
+                            <button class="btn-sm" data-copy="p2b"><i class="fas fa-copy"></i> Copiar</button>
+                            <button class="btn-sm" data-share="p2b"><i class="fas fa-share-nodes"></i> Compartilhar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modo C -->
+                <div class="mode-content" id="modeC">
+                    <div class="card">
+                        <div class="card-title">Descobrir peças por caixa</div>
+                        <div class="form-group">
+                            <label>m² por caixa</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="p2cM2PorCaixa" placeholder="Ex: 2,16" step="0.01" min="0.01" inputmode="decimal" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Largura da peça <span class="label-hint">(cm)</span></label>
+                            <div class="input-wrapper">
+                                <input type="number" id="p2cLargura" placeholder="Ex: 30" step="0.1" min="0.1" inputmode="decimal" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Comprimento da peça <span class="label-hint">(cm)</span></label>
+                            <div class="input-wrapper">
+                                <input type="number" id="p2cComprimento" placeholder="Ex: 60" step="0.1" min="0.1" inputmode="decimal" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn btn-primary" id="p2cCalcular"><i class="fas fa-play"></i> Calcular</button>
+                        <button class="btn btn-outline" id="p2cLimpar"><i class="fas fa-eraser"></i> Limpar</button>
+                    </div>
+                    <div class="result-card" id="p2cResultado">
+                        <div class="result-main">
+                            <div class="big-number" id="p2cNumero">— <span class="unit">PEÇAS</span></div>
+                            <div class="sub-text">Por caixa (arredondado para baixo)</div>
+                        </div>
+                        <div class="result-detail">
+                            <span class="detail-item">Área da peça: <strong id="p2cAreaPeca">—</strong></span>
+                        </div>
+                        <div class="result-actions">
+                            <button class="btn-sm" data-copy="p2c"><i class="fas fa-copy"></i> Copiar</button>
+                            <button class="btn-sm" data-share="p2c"><i class="fas fa-share-nodes"></i> Compartilhar</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== ABA 3 – ARGAMASSA ===== -->
+            <section class="tab-panel" id="tab3">
+                <div class="card">
+                    <div class="card-title">Consumo de argamassa</div>
+                    <div class="form-group">
+                        <label>Área <span class="label-hint">(m²)</span></label>
+                        <div class="input-wrapper">
+                            <input type="number" id="p3Area" placeholder="Ex: 20" step="0.01" min="0.01" inputmode="decimal" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de assentamento</label>
+                        <div class="inline-select" id="p3Tipo">
+                            <div class="option active" data-value="padrao">
+                                Piso até 60x60
+                                <span class="sub">5 kg/m²</span>
+                            </div>
+                            <div class="option" data-value="grande">
+                                Piso > 60x60
+                                <span class="sub">7 kg/m²</span>
+                            </div>
+                            <div class="option" data-value="porcelanato">
+                                Porcelanato grande
+                                <span class="sub">8 kg/m²</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" id="p3Calcular"><i class="fas fa-play"></i> Calcular</button>
+                    <button class="btn btn-outline" id="p3Limpar"><i class="fas fa-eraser"></i> Limpar</button>
+                </div>
+
+                <div class="result-card" id="p3Resultado">
+                    <div class="result-main">
+                        <div class="big-number" id="p3Numero">— <span class="unit">kg</span></div>
+                        <div class="sub-text">Consumo total</div>
+                    </div>
+                    <div class="result-detail">
+                        <span class="detail-item">Sacos 20 kg: <strong id="p3Sacos20">—</strong> &nbsp;|&nbsp; Sacos 25 kg: <strong id="p3Sacos25">—</strong></span>
+                    </div>
+                    <div class="result-actions">
+                        <button class="btn-sm" data-copy="p3"><i class="fas fa-copy"></i> Copiar</button>
+                        <button class="btn-sm" data-share="p3"><i class="fas fa-share-nodes"></i> Compartilhar</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== ABA 4 – REJUNTE ===== -->
+            <section class="tab-panel" id="tab4">
+                <div class="card">
+                    <div class="card-title">Consumo de rejunte</div>
+                    <div class="form-group">
+                        <label>Largura da peça <span class="label-hint">(cm)</span></label>
+                        <div class="input-wrapper">
+                            <input type="number" id="p4Largura" placeholder="Ex: 30" step="0.1" min="0.1" inputmode="decimal" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Comprimento da peça <span class="label-hint">(cm)</span></label>
+                        <div class="input-wrapper">
+                            <input type="number" id="p4Comprimento" placeholder="Ex: 60" step="0.1" min="0.1" inputmode="decimal" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Espessura da junta <span class="label-hint">(mm)</span></label>
+                        <div class="input-wrapper">
+                            <input type="number" id="p4Junta" placeholder="Ex: 3" step="0.5" min="1" max="10" inputmode="decimal" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Área total <span class="label-hint">(m²)</span></label>
+                        <div class="input-wrapper">
+                            <input type="number" id="p4Area" placeholder="Ex: 5" step="0.01" min="0.01" inputmode="decimal" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" id="p4Calcular"><i class="fas fa-play"></i> Calcular</button>
+                    <button class="btn btn-outline" id="p4Limpar"><i class="fas fa-eraser"></i> Limpar</button>
+                </div>
+
+                <div class="result-card" id="p4Resultado">
+                    <div class="result-main">
+                        <div class="big-number" id="p4Numero">— <span class="unit">kg</span></div>
+                        <div class="sub-text">Consumo total</div>
+                    </div>
+                    <div class="result-detail">
+                        <span class="detail-item">Pacote 1 kg: <strong id="p4Pacote1">—</strong> &nbsp;|&nbsp; 5 kg: <strong id="p4Pacote5">—</strong> &nbsp;|&nbsp; 10 kg: <strong id="p4Pacote10">—</strong></span>
+                    </div>
+                    <div class="result-actions">
+                        <button class="btn-sm" data-copy="p4"><i class="fas fa-copy"></i> Copiar</button>
+                        <button class="btn-sm" data-share="p4"><i class="fas fa-share-nodes"></i> Compartilhar</button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- ===== TAB BAR ===== -->
+        <nav class="tab-bar" role="tablist">
+            <button class="tab-btn active" data-tab="tab1" role="tab" aria-selected="true">
+                <i class="fas fa-th-large"></i>
+                <span>Peças</span>
+            </button>
+            <button class="tab-btn" data-tab="tab2" role="tab" aria-selected="false">
+                <i class="fas fa-box"></i>
+                <span>Caixas</span>
+            </button>
+            <button class="tab-btn" data-tab="tab3" role="tab" aria-selected="false">
+                <i class="fas fa-weight-hanging"></i>
+                <span>Argamassa</span>
+            </button>
+            <button class="tab-btn" data-tab="tab4" role="tab" aria-selected="false">
+                <i class="fas fa-fill-drip"></i>
+                <span>Rejunte</span>
+            </button>
+        </nav>
+
+        <!-- ===== HISTORY OVERLAY ===== -->
+        <div class="history-overlay" id="historyOverlay">
+            <div class="history-sheet" id="historySheet">
+                <div class="sheet-header">
+                    <h3><i class="fas fa-clock-rotate-left"></i> Histórico</h3>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <button class="history-clear" id="historyClear"><i class="fas fa-trash-can"></i> Limpar</button>
+                        <button class="close-btn" id="historyClose"><i class="fas fa-xmark"></i></button>
+                    </div>
+                </div>
+                <div id="historyList">
+                    <div class="history-empty">
+                        <i class="fas fa-clock-rotate-left"></i>
+                        Nenhum cálculo registrado
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TOAST ===== -->
+        <div class="toast" id="toast"></div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ===== JAVASCRIPT ===== -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================
+            // DOM refs
+            // ============================
+            const $ = (sel, ctx = document) => ctx.querySelector(sel);
+            const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+
+            const tabs = $$('.tab-btn');
+            const panels = $$('.tab-panel');
+            const mainContent = $('#mainContent');
+
+            const historyToggle = $('#historyToggle');
+            const historyOverlay = $('#historyOverlay');
+            const historyClose = $('#historyClose');
+            const historyList = $('#historyList');
+            const historyClear = $('#historyClear');
+            const historyBadge = $('#historyBadge');
+
+            const toastEl = $('#toast');
+            let toastTimeout = null;
+
+            // ============================
+            // History
+            // ============================
+            let history = [];
+            const HISTORY_KEY = 'calcHistory';
+            const MAX_HISTORY = 10;
+
+            function loadHistory() {
+                try {
+                    const raw = localStorage.getItem(HISTORY_KEY);
+                    if (raw) history = JSON.parse(raw);
+                    if (!Array.isArray(history)) history = [];
+                } catch (_) { history = []; }
+                renderHistory();
+            }
+
+            function saveHistory() {
+                try {
+                    localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, MAX_HISTORY)));
+                } catch (_) {}
+                renderHistory();
+            }
+
+            function addHistoryEntry(tabName, description, resultText) {
+                history.unshift({
+                    tab: tabName,
+                    desc: description,
+                    result: resultText,
+                    time: Date.now()
+                });
+                if (history.length > MAX_HISTORY) history.length = MAX_HISTORY;
+                saveHistory();
+            }
+
+            function renderHistory() {
+                historyBadge.textContent = history.length;
+                if (history.length === 0) {
+                    historyList.innerHTML = `
+                        <div class="history-empty">
+                            <i class="fas fa-clock-rotate-left"></i>
+                            Nenhum cálculo registrado
+                        </div>
+                    `;
+                    return;
+                }
+                let html = '';
+                history.forEach((h) => {
+                    const date = new Date(h.time);
+                    const timeStr = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+                    html += `
+                        <div class="history-item">
+                            <div class="h-left">
+                                <div class="h-tab">${h.tab}</div>
+                                <div class="h-desc">${h.desc}</div>
+                                <div class="h-time">${dateStr} • ${timeStr}</div>
+                            </div>
+                            <div class="h-result">${h.result}</div>
+                        </div>
+                    `;
+                });
+                historyList.innerHTML = html;
+            }
+
+            function clearHistory() {
+                if (history.length === 0) return;
+                history = [];
+                saveHistory();
+                showToast('Histórico limpo');
+            }
+
+            // ============================
+            // Toast
+            // ============================
+            function showToast(msg) {
+                if (toastTimeout) {
+                    clearTimeout(toastTimeout);
+                    toastEl.classList.remove('show');
+                }
+                void toastEl.offsetWidth;
+                toastEl.textContent = msg;
+                toastEl.classList.add('show');
+                toastTimeout = setTimeout(() => {
+                    toastEl.classList.remove('show');
+                    toastTimeout = null;
+                }, 2000);
+            }
+
+            // ============================
+            // Copy / Share
+            // ============================
+            function getResultText(prefix, rows) {
+                let text = prefix + '\n';
+                rows.forEach(r => {
+                    text += r.label + ': ' + r.value + '\n';
+                });
+                return text.trim();
+            }
+
+            function handleCopy(btn) {
+                const target = btn.dataset.copy;
+                const panel = document.getElementById(target + 'Resultado');
+                if (!panel) return;
+                // Extrair dados do resultado
+                const mainNum = panel.querySelector('.big-number')?.textContent?.trim() || '';
+                const sub = panel.querySelector('.sub-text')?.textContent?.trim() || '';
+                const detail = panel.querySelector('.result-detail strong')?.textContent?.trim() || '';
+                const detailLabel = panel.querySelector('.result-detail .detail-item')?.textContent?.replace(detail, '')
+                    ?.trim() || '';
+
+                let lines = [];
+                if (mainNum) lines.push('Resultado: ' + mainNum);
+                if (sub) lines.push(sub);
+                if (detailLabel && detail) lines.push(detailLabel + ' ' + detail);
+
+                const text = lines.join('\n');
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('Copiado!');
+                }).catch(() => {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    showToast('Copiado!');
+                });
+            }
+
+            function handleShare(btn) {
+                const target = btn.dataset.share;
+                const panel = document.getElementById(target + 'Resultado');
+                if (!panel) return;
+                const mainNum = panel.querySelector('.big-number')?.textContent?.trim() || '';
+                const sub = panel.querySelector('.sub-text')?.textContent?.trim() || '';
+                const detail = panel.querySelector('.result-detail strong')?.textContent?.trim() || '';
+                const detailLabel = panel.querySelector('.result-detail .detail-item')?.textContent?.replace(detail, '')
+                    ?.trim() || '';
+
+                let lines = [];
+                if (mainNum) lines.push('Resultado: ' + mainNum);
+                if (sub) lines.push(sub);
+                if (detailLabel && detail) lines.push(detailLabel + ' ' + detail);
+
+                const text = lines.join('\n');
+
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'Calcular Construção',
+                        text: text
+                    }).catch(() => {});
+                } else {
+                    navigator.clipboard.writeText(text).then(() => {
+                        showToast('Copiado para compartilhar!');
+                    }).catch(() => {
+                        const ta = document.createElement('textarea');
+                        ta.value = text;
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        showToast('Copiado para compartilhar!');
+                    });
+                }
+            }
+
+            // ============================
+            // Tab switching
+            // ============================
+            function switchTab(tabId) {
+                tabs.forEach(btn => {
+                    const isActive = btn.dataset.tab === tabId;
+                    btn.classList.toggle('active', isActive);
+                    btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                });
+                panels.forEach(p => {
+                    p.classList.toggle('active', p.id === tabId);
+                });
+                mainContent.scrollTop = 0;
+            }
+
+            // ============================
+            // Helpers
+            // ============================
+            function getVal(id) {
+                const el = document.getElementById(id);
+                if (!el) return NaN;
+                const v = parseFloat(el.value.replace(',', '.').trim());
+                return isNaN(v) ? NaN : v;
+            }
+
+            function setVal(id, v) {
+                const el = document.getElementById(id);
+                if (el) el.value = v;
+            }
+
+            function showResult(id, data) {
+                const panel = document.getElementById(id + 'Resultado');
+                if (!panel) return;
+                panel.classList.add('visible');
+
+                // data: { numero, subtexto, detalhe, ... }
+                for (const [key, val] of Object.entries(data)) {
+                    const el = document.getElementById(id + key);
+                    if (el) {
+                        // Se for o big-number, precisamos preservar a unidade
+                        if (key === 'Numero') {
+                            // O valor já vem com unidade, por exemplo "17 PEÇAS"
+                            el.innerHTML = val;
+                        } else {
+                            el.textContent = val;
+                        }
+                    }
+                }
+            }
+
+            function hideResult(id) {
+                const panel = document.getElementById(id + 'Resultado');
+                if (panel) panel.classList.remove('visible');
+            }
+
+            function clearInputs(ids) {
+                ids.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+            }
+
+            function getActiveMode() {
+                const active = document.querySelector('#tab2Modes .mode-btn.active');
+                return active ? active.dataset.mode : 'A';
+            }
+
+            // ============================
+            // TAB 1
+            // ============================
+            function calcP1() {
+                const larg = getVal('p1Largura');
+                const comp = getVal('p1Comprimento');
+                const area = getVal('p1Area');
+
+                if (isNaN(larg) || larg <= 0 || isNaN(comp) || comp <= 0 || isNaN(area) || area <= 0) {
+                    showToast('Preencha todos os campos com valores válidos');
+                    return;
+                }
+
+                const areaPeca = (larg / 100) * (comp / 100);
+                const pecas = Math.ceil(area / areaPeca);
+
+                showResult('p1', {
+                    'Numero': `${pecas} <span class="unit">PEÇAS</span>`,
+                    'Subtexto': 'Arredondado para cima',
+                    'AreaPeca': `${areaPeca.toFixed(4)} m²`
+                });
+
+                addHistoryEntry(
+                    'Peças e m²',
+                    `${larg}×${comp}cm • ${area}m²`,
+                    `${pecas} peças`
+                );
+            }
+
+            function limparP1() {
+                clearInputs(['p1Largura', 'p1Comprimento', 'p1Area']);
+                hideResult('p1');
+            }
+
+            // ============================
+            // TAB 2
+            // ============================
+            function calcP2a() {
+                const area = getVal('p2aArea');
+                const m2cx = getVal('p2aM2PorCaixa');
+                if (isNaN(area) || area <= 0 || isNaN(m2cx) || m2cx <= 0) {
+                    showToast('Preencha todos os campos');
+                    return;
+                }
+                const caixas = Math.ceil(area / m2cx);
+                showResult('p2a', {
+                    'Numero': `${caixas} <span class="unit">CAIXAS</span>`
+                });
+                addHistoryEntry('Caixas (A)', `${area}m² • ${m2cx}m²/cx`, `${caixas} caixas`);
+            }
+
+            function limparP2a() {
+                clearInputs(['p2aArea', 'p2aM2PorCaixa']);
+                hideResult('p2a');
+            }
+
+            function calcP2b() {
+                const cx = getVal('p2bCaixas');
+                const m2cx = getVal('p2bM2PorCaixa');
+                if (isNaN(cx) || cx <= 0 || isNaN(m2cx) || m2cx <= 0) {
+                    showToast('Preencha todos os campos');
+                    return;
+                }
+                const total = cx * m2cx;
+                showResult('p2b', {
+                    'Numero': `${total.toFixed(2)} <span class="unit">m²</span>`
+                });
+                addHistoryEntry('Caixas (B)', `${cx} cx • ${m2cx}m²/cx`, `${total.toFixed(2)} m²`);
+            }
+
+            function limparP2b() {
+                clearInputs(['p2bCaixas', 'p2bM2PorCaixa']);
+                hideResult('p2b');
+            }
+
+            function calcP2c() {
+                const m2cx = getVal('p2cM2PorCaixa');
+                const larg = getVal('p2cLargura');
+                const comp = getVal('p2cComprimento');
+                if (isNaN(m2cx) || m2cx <= 0 || isNaN(larg) || larg <= 0 || isNaN(comp) || comp <= 0) {
+                    showToast('Preencha todos os campos');
+                    return;
+                }
+                const areaPeca = (larg / 100) * (comp / 100);
+                const pecas = Math.floor(m2cx / areaPeca);
+                showResult('p2c', {
+                    'Numero': `${pecas} <span class="unit">PEÇAS</span>`,
+                    'AreaPeca': `${areaPeca.toFixed(4)} m²`
+                });
+                addHistoryEntry('Caixas (C)', `${m2cx}m²/cx • ${larg}×${comp}cm`, `${pecas} peças/cx`);
+            }
+
+            function limparP2c() {
+                clearInputs(['p2cM2PorCaixa', 'p2cLargura', 'p2cComprimento']);
+                hideResult('p2c');
+            }
+
+            // ============================
+            // TAB 3
+            // ============================
+            function getTipoArgamassa() {
+                const active = document.querySelector('#p3Tipo .option.active');
+                return active ? active.dataset.value : 'padrao';
+            }
+
+            function calcP3() {
+                const area = getVal('p3Area');
+                const tipo = getTipoArgamassa();
+                if (isNaN(area) || area <= 0) {
+                    showToast('Preencha a área');
+                    return;
+                }
+                let consumoPorM2 = 5;
+                if (tipo === 'grande') consumoPorM2 = 7;
+                else if (tipo === 'porcelanato') consumoPorM2 = 8;
+
+                const total = area * consumoPorM2;
+                const sacos20 = Math.ceil(total / 20);
+                const sacos25 = Math.ceil(total / 25);
+
+                showResult('p3', {
+                    'Numero': `${total.toFixed(1)} <span class="unit">kg</span>`,
+                    'Sacos20': `${sacos20}`,
+                    'Sacos25': `${sacos25}`
+                });
+                addHistoryEntry('Argamassa', `${area}m² • ${consumoPorM2}kg/m²`, `${total.toFixed(1)} kg`);
+            }
+
+            function limparP3() {
+                clearInputs(['p3Area']);
+                hideResult('p3');
+                document.querySelectorAll('#p3Tipo .option').forEach(o => o.classList.remove('active'));
+                document.querySelector('#p3Tipo .option[data-value="padrao"]')?.classList.add('active');
+            }
+
+            // ============================
+            // TAB 4
+            // ============================
+            function getRejunteRate(junta) {
+                const map = {
+                    1: 0.10,
+                    1.5: 0.15,
+                    2: 0.20,
+                    2.5: 0.25,
+                    3: 0.30,
+                    3.5: 0.35,
+                    4: 0.40,
+                    4.5: 0.45,
+                    5: 0.50,
+                    5.5: 0.55,
+                    6: 0.60,
+                    6.5: 0.65,
+                    7: 0.70,
+                    8: 0.80,
+                    9: 0.90,
+                    10: 1.00
+                };
+                const keys = Object.keys(map).map(Number).sort((a, b) => a - b);
+                let closest = keys[0];
+                for (const k of keys) {
+                    if (Math.abs(k - junta) < Math.abs(closest - junta)) {
+                        closest = k;
+                    }
+                }
+                return map[closest] || 0.30;
+            }
+
+            function calcP4() {
+                const larg = getVal('p4Largura');
+                const comp = getVal('p4Comprimento');
+                const junta = getVal('p4Junta');
+                const area = getVal('p4Area');
+                if (isNaN(larg) || larg <= 0 || isNaN(comp) || comp <= 0 || isNaN(junta) || junta <= 0 || isNaN(area) ||
+                    area <= 0) {
+                    showToast('Preencha todos os campos');
+                    return;
+                }
+
+                const rate = getRejunteRate(junta);
+                const total = area * rate;
+                const p1 = Math.ceil(total / 1);
+                const p5 = Math.ceil(total / 5);
+                const p10 = Math.ceil(total / 10);
+
+                showResult('p4', {
+                    'Numero': `${total.toFixed(2)} <span class="unit">kg</span>`,
+                    'Pacote1': `${p1}`,
+                    'Pacote5': `${p5}`,
+                    'Pacote10': `${p10}`
+                });
+                addHistoryEntry('Rejunte', `${larg}×${comp}cm • junta ${junta}mm`, `${total.toFixed(2)} kg`);
+            }
+
+            function limparP4() {
+                clearInputs(['p4Largura', 'p4Comprimento', 'p4Junta', 'p4Area']);
+                hideResult('p4');
+            }
+
+            // ============================
+            // Eventos
+            // ============================
+
+            // Tabs
+            tabs.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    switchTab(this.dataset.tab);
+                });
+            });
+
+            // Tab 1
+            document.getElementById('p1Calcular').addEventListener('click', calcP1);
+            document.getElementById('p1Limpar').addEventListener('click', limparP1);
+            document.getElementById('p1Area').addEventListener('keydown', (e) => { if (e.key === 'Enter') calcP1(); });
+
+            // Tab 2 modes
+            document.querySelectorAll('#tab2Modes .mode-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#tab2Modes .mode-btn').forEach(b => b.classList.remove(
+                    'active'));
+                    this.classList.add('active');
+                    const mode = this.dataset.mode;
+                    document.querySelectorAll('#tab2 .mode-content').forEach(el => el.classList.remove(
+                    'active'));
+                    document.getElementById('mode' + mode).classList.add('active');
+                    ['p2a', 'p2b', 'p2c'].forEach(id => hideResult(id));
+                });
+            });
+
+            document.getElementById('p2aCalcular').addEventListener('click', calcP2a);
+            document.getElementById('p2aLimpar').addEventListener('click', limparP2a);
+            document.getElementById('p2aM2PorCaixa').addEventListener('keydown', (e) => { if (e.key === 'Enter') calcP2a(); });
+
+            document.getElementById('p2bCalcular').addEventListener('click', calcP2b);
+            document.getElementById('p2bLimpar').addEventListener('click', limparP2b);
+            document.getElementById('p2bM2PorCaixa').addEventListener('keydown', (e) => { if (e.key === 'Enter') calcP2b(); });
+
+            document.getElementById('p2cCalcular').addEventListener('click', calcP2c);
+            document.getElementById('p2cLimpar').addEventListener('click', limparP2c);
+            document.getElementById('p2cComprimento').addEventListener('keydown', (e) => { if (e.key === 'Enter') calcP2c(); });
+
+            // Tab 3
+            document.querySelectorAll('#p3Tipo .option').forEach(el => {
+                el.addEventListener('click', function() {
+                    document.querySelectorAll('#p3Tipo .option').forEach(o => o.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            document.getElementById('p3Calcular').addEventListener('click', calcP3);
+            document.getElementById('p3Limpar').addEventListener('click', limparP3);
+            document.getElementById('p3Area').addEventListener('keydown', (e) => { if (e.key === 'Enter') calcP3(); });
+
+            // Tab 4
+            document.getElementById('p4Calcular').addEventListener('click', calcP4);
+            document.getElementById('p4Limpar').addEventListener('click', limparP4);
+            document.getElementById('p4Area').addEventListener('keydown', (e) => { if (e.key === 'Enter') calcP4(); });
+
+            // Copy / Share
+            document.addEventListener('click', function(e) {
+                const copyBtn = e.target.closest('[data-copy]');
+                if (copyBtn) {
+                    e.preventDefault();
+                    handleCopy(copyBtn);
+                    return;
+                }
+                const shareBtn = e.target.closest('[data-share]');
+                if (shareBtn) {
+                    e.preventDefault();
+                    handleShare(shareBtn);
+                    return;
+                }
+            });
+
+            // History
+            historyToggle.addEventListener('click', () => {
+                historyOverlay.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            });
+            historyClose.addEventListener('click', () => {
+                historyOverlay.classList.remove('open');
+                document.body.style.overflow = '';
+            });
+            historyOverlay.addEventListener('click', (e) => {
+                if (e.target === historyOverlay) {
+                    historyOverlay.classList.remove('open');
+                    document.body.style.overflow = '';
+                }
+            });
+            historyClear.addEventListener('click', clearHistory);
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && historyOverlay.classList.contains('open')) {
+                    historyOverlay.classList.remove('open');
+                    document.body.style.overflow = '';
+                }
+            });
+
+            // ============================
+            // Init
+            // ============================
+            loadHistory();
+            switchTab('tab1');
+            setTimeout(() => showToast('👷 Calcular Construção'), 400);
+
+        })();
+    </script>
+
+</body>
+</html>
