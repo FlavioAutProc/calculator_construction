@@ -286,7 +286,7 @@
             cursor: pointer;
         }
 
-        /* ===== Ícones de largura/altura personalizados ===== */
+        /* ===== Ícones de dimensão ===== */
         .dimension-icons {
             display: flex;
             align-items: center;
@@ -481,7 +481,7 @@
             background: var(--bg);
         }
 
-        /* ===== Mode selector (aba 2) ===== */
+        /* ===== Mode selector (aba 2 e 3) ===== */
         .mode-selector {
             display: flex;
             gap: 8px;
@@ -527,7 +527,7 @@
             display: block;
         }
 
-        /* ===== Inline select (tipo argamassa) ===== */
+        /* ===== Inline select (tipo argamassa - padrão) ===== */
         .inline-select {
             display: flex;
             flex-wrap: wrap;
@@ -562,36 +562,6 @@
             font-weight: 400;
             color: var(--text-muted);
             margin-top: 3px;
-        }
-
-        .inline-select .option.custom-option {
-            flex: 1 0 100%;
-            background: var(--bg);
-            border-style: dashed;
-        }
-
-        .inline-select .option.custom-option.active {
-            border-style: solid;
-        }
-
-        .inline-select .custom-input {
-            display: none;
-            margin-top: 8px;
-            width: 100%;
-        }
-
-        .inline-select .custom-input input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 1rem;
-            font-family: var(--font);
-        }
-
-        .inline-select .custom-input input:focus {
-            outline: none;
-            border-color: var(--primary);
         }
 
         /* ===== Tab Bar ===== */
@@ -789,17 +759,6 @@
             padding: 24px 20px calc(24px + var(--safe-bottom));
             overflow-y: auto;
             animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(40px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
         }
 
         .history-sheet .sheet-header {
@@ -1047,9 +1006,18 @@
             display: block;
         }
 
-        /* ===== Toggle custom input argamassa ===== */
-        .custom-option .custom-input.active {
+        /* ===== Ocultar/seção personalizada ===== */
+        .custom-mode-fields {
+            display: none;
+        }
+        .custom-mode-fields.active {
             display: block;
+        }
+        .standard-mode-fields {
+            display: block;
+        }
+        .standard-mode-fields.hidden {
+            display: none;
         }
     </style>
 </head>
@@ -1086,7 +1054,6 @@
                             <i class="fas fa-circle-question"></i>
                         </button>
                     </div>
-                    <!-- Ícones de dimensão -->
                     <div class="dimension-icons">
                         <div class="dim-icon"><i class="fas fa-arrow-left"></i><i class="fas fa-arrow-right"></i> <span>Largura</span></div>
                         <div class="dim-icon"><i class="fas fa-arrow-up"></i><i class="fas fa-arrow-down"></i> <span>Altura</span></div>
@@ -1135,7 +1102,7 @@
                     </div>
                 </div>
 
-                <!-- Help modal para aba 1 -->
+                <!-- Help modal -->
                 <div class="help-overlay" id="help1">
                     <div class="help-modal">
                         <div class="help-header">
@@ -1154,7 +1121,6 @@
                                 Peça 30×60 cm → 0,30 × 0,60 = 0,18 m²<br />
                                 Área desejada: 3 m² → 3 ÷ 0,18 = 16,67 → <strong>17 peças</strong> (arredondado para cima)
                             </div>
-                            <p><strong>Dica:</strong> Sempre arredonde para cima para garantir que não falte material.</p>
                         </div>
                     </div>
                 </div>
@@ -1299,7 +1265,7 @@
                     </div>
                 </div>
 
-                <!-- Help modal aba 2 -->
+                <!-- Help -->
                 <div class="help-overlay" id="help2">
                     <div class="help-modal">
                         <div class="help-header">
@@ -1325,74 +1291,137 @@
             </section>
 
             <!-- ============================================================ -->
-            <!-- ABA 3 – ARGAMASSA -->
+            <!-- ABA 3 – ARGAMASSA (refatorada) -->
             <!-- ============================================================ -->
             <section class="tab-panel" id="tab3">
-                <div class="card">
+                <div class="card" style="margin-bottom:12px;">
                     <div class="card-title">
                         <i class="fas fa-weight-hanging"></i> Consumo de argamassa
                         <button class="help-trigger" data-help="help3" aria-label="Ajuda">
                             <i class="fas fa-circle-question"></i>
                         </button>
                     </div>
-                    <div class="form-group">
-                        <label>Área <span class="label-hint">(m²)</span></label>
-                        <div class="input-wrapper">
-                            <input type="number" id="p3Area" placeholder="Ex: 20" step="0.01" min="0.01" inputmode="decimal" />
+                </div>
+
+                <!-- Seletor de modo: Padrão ou Personalizado -->
+                <div class="mode-selector" id="tab3Modes">
+                    <button class="mode-btn active" data-mode="standard">Padrão</button>
+                    <button class="mode-btn" data-mode="custom">Personalizado</button>
+                </div>
+
+                <!-- Modo Padrão -->
+                <div class="mode-content active" id="modeStandard">
+                    <div class="card">
+                        <div class="card-title">
+                            <i class="fas fa-cogs"></i> Modelos predefinidos
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Tipo de assentamento ou consumo personalizado</label>
-                        <div class="inline-select" id="p3Tipo">
-                            <div class="option active" data-value="5">
-                                Piso até 60x60
-                                <span class="sub">5 kg/m²</span>
+                        <div class="form-group">
+                            <label>Área <span class="label-hint">(m²)</span></label>
+                            <div class="input-wrapper">
+                                <input type="number" id="p3AreaStd" placeholder="Ex: 20" step="0.01" min="0.01" inputmode="decimal" />
                             </div>
-                            <div class="option" data-value="7">
-                                Piso > 60x60
-                                <span class="sub">7 kg/m²</span>
-                            </div>
-                            <div class="option" data-value="8">
-                                Porcelanato grande
-                                <span class="sub">8 kg/m²</span>
-                            </div>
-                            <div class="option" data-value="6">
-                                Pastilha / Mosaico
-                                <span class="sub">6 kg/m²</span>
-                            </div>
-                            <div class="option" data-value="4.5">
-                                Piso fino (até 40x40)
-                                <span class="sub">4,5 kg/m²</span>
-                            </div>
-                            <div class="option custom-option" data-value="custom">
-                                Personalizado
-                                <span class="sub">Digite o consumo</span>
-                                <div class="custom-input" id="p3CustomInput">
-                                    <input type="number" id="p3CustomKg" placeholder="kg/m²" step="0.1" min="0.1" inputmode="decimal" />
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo de assentamento</label>
+                            <div class="inline-select" id="p3TipoStd">
+                                <div class="option active" data-value="5">
+                                    Piso até 60x60
+                                    <span class="sub">5 kg/m²</span>
+                                </div>
+                                <div class="option" data-value="7">
+                                    Piso > 60x60
+                                    <span class="sub">7 kg/m²</span>
+                                </div>
+                                <div class="option" data-value="8">
+                                    Porcelanato grande
+                                    <span class="sub">8 kg/m²</span>
+                                </div>
+                                <div class="option" data-value="6">
+                                    Pastilha / Mosaico
+                                    <span class="sub">6 kg/m²</span>
+                                </div>
+                                <div class="option" data-value="4.5">
+                                    Piso fino (até 40x40)
+                                    <span class="sub">4,5 kg/m²</span>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <div class="btn-row">
+                        <button class="btn btn-primary" id="p3CalcularStd"><i class="fas fa-play"></i> Calcular</button>
+                        <button class="btn btn-outline" id="p3LimparStd"><i class="fas fa-eraser"></i> Limpar</button>
+                    </div>
+                    <div class="result-card" id="p3ResultadoStd">
+                        <div class="result-header"><i class="fas fa-check-circle"></i> Resultado</div>
+                        <div class="result-main">
+                            <div class="big-number" id="p3NumeroStd">— <span class="unit">kg</span></div>
+                            <div class="sub-text">Consumo total</div>
+                        </div>
+                        <div class="result-details">
+                            <span class="detail-item">Saco 20 kg: <strong id="p3Sacos20Std">—</strong> &nbsp;—&nbsp; <span class="highlight" id="p3Cobre20Std">—</span> m²</span>
+                            <span class="detail-item">Saco 25 kg: <strong id="p3Sacos25Std">—</strong> &nbsp;—&nbsp; <span class="highlight" id="p3Cobre25Std">—</span> m²</span>
+                        </div>
+                        <div class="result-actions">
+                            <button class="btn-sm" data-copy="p3Std"><i class="fas fa-copy"></i> Copiar</button>
+                            <button class="btn-sm" data-share="p3Std"><i class="fas fa-share-nodes"></i> Compartilhar</button>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="btn-row">
-                    <button class="btn btn-primary" id="p3Calcular"><i class="fas fa-play"></i> Calcular</button>
-                    <button class="btn btn-outline" id="p3Limpar"><i class="fas fa-eraser"></i> Limpar</button>
-                </div>
-
-                <div class="result-card" id="p3Resultado">
-                    <div class="result-header"><i class="fas fa-check-circle"></i> Resultado</div>
-                    <div class="result-main">
-                        <div class="big-number" id="p3Numero">— <span class="unit">kg</span></div>
-                        <div class="sub-text">Consumo total de argamassa</div>
+                <!-- Modo Personalizado (baseado em dimensões e cobertura) -->
+                <div class="mode-content" id="modeCustom">
+                    <div class="card">
+                        <div class="card-title">
+                            <i class="fas fa-pencil"></i> Personalizado
+                        </div>
+                        <div class="dimension-icons">
+                            <div class="dim-icon"><i class="fas fa-arrow-left"></i><i class="fas fa-arrow-right"></i> <span>Largura</span></div>
+                            <div class="dim-icon"><i class="fas fa-arrow-up"></i><i class="fas fa-arrow-down"></i> <span>Altura</span></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Largura da peça <span class="label-hint">(cm)</span></label>
+                            <div class="input-wrapper">
+                                <input type="number" id="p3CustomLarg" placeholder="Ex: 30" step="0.1" min="0.1" inputmode="decimal" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Comprimento da peça <span class="label-hint">(cm)</span></label>
+                            <div class="input-wrapper">
+                                <input type="number" id="p3CustomComp" placeholder="Ex: 60" step="0.1" min="0.1" inputmode="decimal" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Área a cobrir <span class="label-hint">(m²)</span></label>
+                            <div class="input-wrapper">
+                                <input type="number" id="p3CustomArea" placeholder="Ex: 20" step="0.01" min="0.01" inputmode="decimal" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Cobertura por saco <span class="label-hint">(m²/saco)</span></label>
+                            <div class="input-wrapper">
+                                <input type="number" id="p3CustomCobertura" placeholder="Ex: 3" step="0.01" min="0.01" inputmode="decimal" />
+                            </div>
+                        </div>
                     </div>
-                    <div class="result-details">
-                        <span class="detail-item">Saco 20 kg: <strong id="p3Sacos20">—</strong> &nbsp;—&nbsp; <span class="highlight" id="p3Cobre20">—</span> m²</span>
-                        <span class="detail-item">Saco 25 kg: <strong id="p3Sacos25">—</strong> &nbsp;—&nbsp; <span class="highlight" id="p3Cobre25">—</span> m²</span>
+                    <div class="btn-row">
+                        <button class="btn btn-primary" id="p3CalcularCustom"><i class="fas fa-play"></i> Calcular</button>
+                        <button class="btn btn-outline" id="p3LimparCustom"><i class="fas fa-eraser"></i> Limpar</button>
                     </div>
-                    <div class="result-actions">
-                        <button class="btn-sm" data-copy="p3"><i class="fas fa-copy"></i> Copiar</button>
-                        <button class="btn-sm" data-share="p3"><i class="fas fa-share-nodes"></i> Compartilhar</button>
+                    <div class="result-card" id="p3ResultadoCustom">
+                        <div class="result-header"><i class="fas fa-check-circle"></i> Resultado</div>
+                        <div class="result-main">
+                            <div class="big-number" id="p3NumeroCustom">— <span class="unit">SACOS</span></div>
+                            <div class="sub-text">Quantidade necessária</div>
+                        </div>
+                        <div class="result-details">
+                            <span class="detail-item">Saco 20 kg: <strong id="p3Sacos20Custom">—</strong></span>
+                            <span class="detail-item">Saco 25 kg: <strong id="p3Sacos25Custom">—</strong></span>
+                            <span class="detail-item">Consumo estimado: <strong id="p3ConsumoEstimado">—</strong> kg/m²</span>
+                        </div>
+                        <div class="result-actions">
+                            <button class="btn-sm" data-copy="p3Custom"><i class="fas fa-copy"></i> Copiar</button>
+                            <button class="btn-sm" data-share="p3Custom"><i class="fas fa-share-nodes"></i> Compartilhar</button>
+                        </div>
                     </div>
                 </div>
 
@@ -1404,18 +1433,12 @@
                             <button class="close-help" data-help="help3">&times;</button>
                         </div>
                         <div class="help-body">
-                            <p><strong>Fórmula:</strong></p>
-                            <div class="formula">
-                                Consumo (kg) = Área (m²) × Consumo por m² (kg/m²)
-                            </div>
-                            <p>O consumo por m² varia conforme o tipo de piso e a espessura do assentamento. Use os modelos predefinidos ou insira seu próprio valor no campo "Personalizado".</p>
-                            <p><strong>Exemplo:</strong></p>
+                            <p><strong>Modo Padrão:</strong> Escolha o tipo de assentamento e informe a área. O sistema calcula o consumo em kg e a quantidade de sacos.</p>
+                            <p><strong>Modo Personalizado:</strong> Informe as dimensões da peça, a área total e a cobertura que cada saco oferece (m² por saco). O sistema calcula quantos sacos de 20 kg e 25 kg são necessários, além de estimar o consumo em kg/m².</p>
                             <div class="example">
-                                Área: 20 m², Piso até 60x60 (5 kg/m²) → 20 × 5 = 100 kg<br />
-                                Sacos de 20 kg: 5 unidades (cobrem 20 m²)<br />
-                                Sacos de 25 kg: 4 unidades (cobrem 20 m²)
+                                Exemplo: Peça 30×60 cm, área 20 m², cada saco cobre 3 m² → 20 ÷ 3 = 6,67 → 7 sacos de 20 kg (ou 7 sacos de 25 kg, dependendo da disponibilidade).
                             </div>
-                            <p><strong>Dica:</strong> Sempre arredonde a quantidade de sacos para cima.</p>
+                            <p><strong>Dica:</strong> O modo personalizado é útil quando você sabe a cobertura da embalagem, comum em lojas de material.</p>
                         </div>
                     </div>
                 </div>
@@ -1432,7 +1455,6 @@
                             <i class="fas fa-circle-question"></i>
                         </button>
                     </div>
-                    <!-- Ícones de dimensão -->
                     <div class="dimension-icons">
                         <div class="dim-icon"><i class="fas fa-arrow-left"></i><i class="fas fa-arrow-right"></i> <span>Largura</span></div>
                         <div class="dim-icon"><i class="fas fa-arrow-up"></i><i class="fas fa-arrow-down"></i> <span>Altura</span></div>
@@ -1485,7 +1507,7 @@
                     </div>
                 </div>
 
-                <!-- Help modal aba 4 -->
+                <!-- Help -->
                 <div class="help-overlay" id="help4">
                     <div class="help-modal">
                         <div class="help-header">
@@ -1510,7 +1532,6 @@
                                 Área: 5 m², junta 3 mm → 5 × 0,30 = 1,5 kg<br />
                                 Pacotes: 2 de 1 kg, 1 de 5 kg (arredondado)
                             </div>
-                            <p><strong>Dica:</strong> Para juntas intermediárias, o sistema faz uma aproximação automática.</p>
                         </div>
                     </div>
                 </div>
@@ -1818,11 +1839,6 @@
                 });
             }
 
-            function getActiveMode() {
-                const active = document.querySelector('#tab2Modes .mode-btn.active');
-                return active ? active.dataset.mode : 'A';
-            }
-
             // ============================
             // TAB 1 – Peças e m²
             // ============================
@@ -1921,22 +1937,18 @@
             }
 
             // ============================
-            // TAB 3 – Argamassa (com personalizado)
+            // TAB 3 – Argamassa
             // ============================
-            function getConsumoArgamassa() {
-                const active = document.querySelector('#p3Tipo .option.active');
+            // --- Modo Padrão ---
+            function getConsumoStd() {
+                const active = document.querySelector('#p3TipoStd .option.active');
                 if (!active) return 5;
-                const val = active.dataset.value;
-                if (val === 'custom') {
-                    const custom = getVal('p3CustomKg');
-                    return (isNaN(custom) || custom <= 0) ? 5 : custom;
-                }
-                return parseFloat(val) || 5;
+                return parseFloat(active.dataset.value) || 5;
             }
 
-            function calcP3() {
-                const area = getVal('p3Area');
-                const consumo = getConsumoArgamassa();
+            function calcP3Std() {
+                const area = getVal('p3AreaStd');
+                const consumo = getConsumoStd();
                 if (isNaN(area) || area <= 0) {
                     showToast('Preencha a área');
                     return;
@@ -1948,29 +1960,68 @@
                 const cobre20 = (20 / consumo);
                 const cobre25 = (25 / consumo);
 
-                showResult('p3', {
+                showResult('p3Std', {
                     'Numero': `${total.toFixed(1)} <span class="unit">kg</span>`,
-                    'Sacos20': `${sacos20}`,
-                    'Sacos25': `${sacos25}`,
-                    'Cobre20': `${cobre20.toFixed(1)}`,
-                    'Cobre25': `${cobre25.toFixed(1)}`
+                    'Sacos20Std': `${sacos20}`,
+                    'Sacos25Std': `${sacos25}`,
+                    'Cobre20Std': `${cobre20.toFixed(1)}`,
+                    'Cobre25Std': `${cobre25.toFixed(1)}`
                 });
 
                 addHistoryEntry(
-                    'Argamassa',
+                    'Argamassa (Padrão)',
                     `${area}m² • ${consumo}kg/m²`,
                     `${total.toFixed(1)} kg (${sacos20}×20kg / ${sacos25}×25kg)`
                 );
             }
 
-            function limparP3() {
-                clearInputs(['p3Area', 'p3CustomKg']);
-                hideResult('p3');
-                // Reset para o primeiro modelo
-                document.querySelectorAll('#p3Tipo .option').forEach(o => o.classList.remove('active'));
-                document.querySelector('#p3Tipo .option[data-value="5"]')?.classList.add('active');
-                // Esconder input custom
-                document.querySelector('#p3CustomInput')?.classList.remove('active');
+            function limparP3Std() {
+                clearInputs(['p3AreaStd']);
+                hideResult('p3Std');
+                document.querySelectorAll('#p3TipoStd .option').forEach(o => o.classList.remove('active'));
+                document.querySelector('#p3TipoStd .option[data-value="5"]')?.classList.add('active');
+            }
+
+            // --- Modo Personalizado ---
+            function calcP3Custom() {
+                const larg = getVal('p3CustomLarg');
+                const comp = getVal('p3CustomComp');
+                const area = getVal('p3CustomArea');
+                const cobertura = getVal('p3CustomCobertura');
+
+                if (isNaN(larg) || larg <= 0 || isNaN(comp) || comp <= 0 || isNaN(area) || area <= 0 || isNaN(cobertura) ||
+                    cobertura <= 0) {
+                    showToast('Preencha todos os campos');
+                    return;
+                }
+
+                const areaPeca = (larg / 100) * (comp / 100);
+                // Consumo estimado em kg/m² (assumindo densidade típica de 1.6 kg/litro? na verdade, vamos calcular baseado na cobertura)
+                // A cobertura é em m² por saco de 20 kg (ou 25 kg). Para estimar kg/m², usamos 20kg / cobertura.
+                const consumoEstimado20 = 20 / cobertura; // kg/m²
+                const consumoEstimado25 = 25 / cobertura; // kg/m²
+
+                // Quantos sacos de 20 kg são necessários?
+                const sacos20 = Math.ceil(area / cobertura);
+                const sacos25 = Math.ceil(area / cobertura);
+
+                showResult('p3Custom', {
+                    'Numero': `${sacos20} <span class="unit">SACOS (20kg)</span>`,
+                    'Sacos20Custom': `${sacos20}`,
+                    'Sacos25Custom': `${sacos25}`,
+                    'ConsumoEstimado': `${consumoEstimado20.toFixed(2)} / ${consumoEstimado25.toFixed(2)}`
+                });
+
+                addHistoryEntry(
+                    'Argamassa (Personalizado)',
+                    `${larg}×${comp}cm • ${area}m² • ${cobertura}m²/saco`,
+                    `${sacos20} sacos 20kg (ou ${sacos25} de 25kg)`
+                );
+            }
+
+            function limparP3Custom() {
+                clearInputs(['p3CustomLarg', 'p3CustomComp', 'p3CustomArea', 'p3CustomCobertura']);
+                hideResult('p3Custom');
             }
 
             // ============================
@@ -2074,7 +2125,6 @@
                 });
             });
 
-            // Fechar help ao clicar fora
             document.querySelectorAll('.help-overlay').forEach(overlay => {
                 overlay.addEventListener('click', function(e) {
                     if (e.target === this) {
@@ -2115,25 +2165,38 @@
             document.getElementById('p2cLimpar').addEventListener('click', limparP2c);
             document.getElementById('p2cComprimento').addEventListener('keydown', (e) => { if (e.key === 'Enter') calcP2c(); });
 
-            // Tab 3 – Argamassa com personalizado
-            document.querySelectorAll('#p3Tipo .option').forEach(el => {
-                el.addEventListener('click', function() {
-                    document.querySelectorAll('#p3Tipo .option').forEach(o => o.classList.remove('active'));
+            // Tab 3 – modos
+            document.querySelectorAll('#tab3Modes .mode-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#tab3Modes .mode-btn').forEach(b => b.classList.remove(
+                    'active'));
                     this.classList.add('active');
-                    // Mostrar/esconder input custom
-                    const customInput = this.querySelector('.custom-input');
-                    if (customInput) {
-                        customInput.classList.add('active');
-                    } else {
-                        document.querySelector('#p3CustomInput')?.classList.remove('active');
-                    }
+                    const mode = this.dataset.mode;
+                    document.querySelectorAll('#tab3 .mode-content').forEach(el => el.classList.remove(
+                    'active'));
+                    document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList
+                        .add('active');
+                    // Esconder resultados
+                    hideResult('p3Std');
+                    hideResult('p3Custom');
                 });
             });
 
-            document.getElementById('p3Calcular').addEventListener('click', calcP3);
-            document.getElementById('p3Limpar').addEventListener('click', limparP3);
-            document.getElementById('p3Area').addEventListener('keydown', (e) => { if (e.key === 'Enter') calcP3(); });
-            document.getElementById('p3CustomKg').addEventListener('keydown', (e) => { if (e.key === 'Enter') calcP3(); });
+            // Padrão
+            document.querySelectorAll('#p3TipoStd .option').forEach(el => {
+                el.addEventListener('click', function() {
+                    document.querySelectorAll('#p3TipoStd .option').forEach(o => o.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            document.getElementById('p3CalcularStd').addEventListener('click', calcP3Std);
+            document.getElementById('p3LimparStd').addEventListener('click', limparP3Std);
+            document.getElementById('p3AreaStd').addEventListener('keydown', (e) => { if (e.key === 'Enter') calcP3Std(); });
+
+            // Personalizado
+            document.getElementById('p3CalcularCustom').addEventListener('click', calcP3Custom);
+            document.getElementById('p3LimparCustom').addEventListener('click', limparP3Custom);
+            document.getElementById('p3CustomCobertura').addEventListener('keydown', (e) => { if (e.key === 'Enter') calcP3Custom(); });
 
             // Tab 4
             document.getElementById('p4Calcular').addEventListener('click', calcP4);
@@ -2178,7 +2241,6 @@
                         historyOverlay.classList.remove('open');
                         document.body.style.overflow = '';
                     }
-                    // Fechar help
                     document.querySelectorAll('.help-overlay.open').forEach(overlay => {
                         overlay.classList.remove('open');
                         document.body.style.overflow = '';
